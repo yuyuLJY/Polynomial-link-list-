@@ -1,0 +1,477 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#define MAX 10
+struct polynode
+{
+    float exp;
+    float coef;
+    struct polynode *link;
+};
+typedef struct polynode *polypointer;
+polypointer creatblankstock(polypointer a);//建立空白链
+void writertofile(polypointer a,int n,polypointer b,int m);//写进txt
+void redfromfile(polypointer a,int *m,polypointer b,int *n,float *x);//从txt中读出来
+char compare(int a,int b);
+polypointer createLink(int n);
+void PrintList(polypointer h);
+polypointer Attach(int e,int c,polypointer d);
+polypointer PolyAdd(polypointer a,polypointer b);
+polypointer Polysub(polypointer a,polypointer b);
+polypointer Polymul(polypointer a,polypointer b);
+polypointer Polydiv(polypointer a,polypointer b);
+polypointer sortFromBig(polypointer h);//排序
+float count(polypointer h,int m,float x);
+void gabege(polypointer p);
+int main()
+{
+    int m,n;
+    //多项式的项数
+    polypointer a,b,c,d,e,f,g;
+    float h,x;
+    a=(polypointer)malloc(sizeof(struct polynode));
+    b=(polypointer)malloc(sizeof(struct polynode));
+    redfromfile(a,&m,b,&n,&x);//从文件txt中读取
+
+    writertofile(a,m,b,n);
+
+    printf("f(x)=");
+    PrintList(a);
+    printf("g(x)=");
+    PrintList(b);
+    printf("\n");
+
+    g=sortFromBig(a);//按降幂排序
+    printf("arrange of exp\n");
+    printf("s(x)=");
+    PrintList(g);
+    printf("\n");
+
+
+    h=count(a,m,x);
+    printf("the value of ");
+    printf("f(x0)=%.2f\n",h);//计算x处的值
+    printf("\n");
+
+    c=PolyAdd(a,b); //多项式加法
+    printf("addition of polynomial\n");
+    printf("s(x)=");
+    PrintList(c);
+    printf("\n");
+
+
+    e=Polysub(a,b);//多项式减法
+    printf("subtraction of polynomial\n");
+    printf("s(x)=");
+    PrintList(e);
+    printf("\n");
+
+
+    d=Polymul(a,b);//多项式乘法
+    printf("multipication of polynomial\n");
+    printf("s(x)=");
+    PrintList(d);
+    printf("\n");
+
+
+    printf("division of polynomial\n");
+    f=Polydiv(a,b);//多项式除法
+    printf("s(x)=");
+    PrintList(f);
+    printf("\n");
+
+
+    //PrintList(a);
+    //printf("请输入多项式 A 的项数 :  ") ;  //构造多项式A
+    //printf("the length of A");
+    scanf("%d",&m) ;
+    //scanf("%f",&x);
+    a=createLink(m) ;
+    scanf("%d",&n) ;
+    b=createLink(n) ;
+    writertofile(a,m,b,n);
+    //PrintList(a);
+    printf("the length of B") ;  //构造多项式B
+    scanf("%d",&n) ;
+    b=createLink(n) ;
+    printf("the zhi of x");
+    scanf("%f",&x);
+    h=count(a,m,x);
+    printf("%f",h);
+    //redfromfile(a,&m,b,&n);
+    //PrintList(a);
+    //PrintList(b);
+
+
+
+    //writertofile(a,m,b,n);
+    //PrintList(b);
+    //writertofile(b,n);
+    //c=PolySub(a,b);
+
+
+    return 0;
+}
+
+//读进experiement.txt
+void writertofile(polypointer a,int m,polypointer b,int n)
+{
+    FILE*fp;
+    polypointer p;
+    p=a->link;
+    int i;
+    if((fp=fopen("E://text.txt","w"))==NULL)
+    {
+        printf("fail to open!");
+        exit(0);
+    }
+    fprintf(fp,"%d\n",m);
+    for(i=1;i<=m;i++)
+    {
+        fprintf(fp,"%.2f %.2f\n",p->exp,p->coef);
+        //fprintf(fp,"%d\n");
+        p=p->link;
+    }
+    polypointer q;
+    q=b->link;
+    fprintf(fp,"%d\n",n);
+    for(i=1;i<=n;i++)
+    {
+        fprintf(fp,"%.2f %.2f\n",q->exp,q->coef);
+        //fprintf(fp,"%d\n");
+        q=q->link;
+    }
+}
+
+//读取信息
+void redfromfile(polypointer a,int *m,polypointer b,int *n,float*x)
+{
+    FILE*fp;
+    int i;
+    polypointer pre,prt,t;
+     if((fp=fopen("E://experiement.txt","r"))==NULL)
+    {
+        printf("fail to open!");
+        exit(0);
+    }
+    fscanf(fp,"%d\n",m);//A式子的项数
+    pre=a;
+    for(i=1;i<=*m;i++)
+    {
+        t=(polypointer)malloc(sizeof(struct polynode));
+        fscanf(fp,"%f %f\n",&(t->exp),&(t->coef));
+        pre->link=t;
+        pre=t;
+        //fprintf(fp,"%d\n");
+    }
+    pre->link=NULL;
+    fscanf(fp,"%d\n",n);//B式子的项数
+    prt=b;
+    for(i=1;i<=*n;i++)
+    {
+        t=(polypointer)malloc(sizeof(struct polynode));
+        fscanf(fp,"%f %f\n",&(t->exp),&(t->coef));
+        prt->link=t;
+        prt=t;
+    }
+    prt->link=NULL;
+    fscanf(fp,"%f\n",x);//读取x0
+    //PrintList(a);
+}
+
+
+//创建链表输入函数
+polypointer createLink(int n)
+{
+    polypointer head;
+    polypointer p,pre;
+    int i;
+    head=(polypointer)malloc(sizeof(struct polynode));
+    head->link= NULL;
+    pre=head;
+    for(i=1;i<=n;i++)
+    {
+        p=(polypointer)malloc(sizeof(struct polynode));
+        //printf("exp and coef");
+        scanf("%f %f",&p->exp,&p->coef);
+        //printf("请输入系数");
+        //scanf("%d",&p->coef);
+        pre->link=p;
+        pre=p;
+    }
+    p->link=NULL;//!!!很重要
+    return head;
+}
+
+//创建链表输出函数
+void PrintList(polypointer h)
+{
+    polypointer p;
+    p=h->link;
+    while(p)
+    {
+        printf("%.2f*X^%.2f ",p->coef,p->exp);
+        if(p->link!=NULL)
+        printf("+");
+        p=p->link;
+        if(p==NULL)
+        printf("\n");
+    }
+}
+
+//按照降幂排序
+polypointer sortFromBig(polypointer h)
+{
+    polypointer p,rear,t1,t;
+    p=(polypointer)malloc(sizeof(struct polynode));//创建表头
+    p->link=NULL;
+    rear=p;//
+    t1=h->link;//指向数值串
+    rear=Attach(t1->coef,t1->exp,rear);//把第一个元素串进链表
+    rear->link=NULL;
+    t1=t1->link;
+    rear=p;
+    while(t1){
+        while( rear->link && (rear->link->exp)>t1->exp){
+            rear=rear->link;
+        }
+        t=(polypointer)malloc(sizeof(struct polynode));
+        t->coef=t1->coef;t->exp=t1->exp;
+        t->link=rear->link;rear->link=t;
+        rear=p;
+        t1=t1->link;
+    }
+    return p;
+}
+
+//计算出f(x0)的值
+float count(polypointer h,int m,float x)
+{
+    float sum=0;
+    polypointer rear;
+    rear=h;
+    int i,j;
+    for(i=1;i<=m;i++)
+    {
+        float a=1;
+        rear=rear->link;
+        for(j=1;j<=rear->exp;j++){
+            a=x*a;
+        }
+        sum=sum+rear->coef*a;
+    }
+    return sum;
+}
+
+//比较两个数字的大小
+char compare(int a,int b)
+{
+    int c=a-b;
+    if(c==0){
+        return '=';
+    }else if(c>0){
+        return '>';
+    }else{
+        return '<';
+    }
+}
+
+//建立一个新节点，把它链接到c结点的后边，并且返回新节点的新指针，即当前节点的指针
+polypointer Attach(int c,int e,polypointer d)
+{
+    polypointer x;
+    x=(polypointer)malloc(sizeof(struct polynode));
+    x->coef=c;
+    x->exp=e;
+    d->link=x;
+    return x;
+}
+
+polypointer PolyAdd(polypointer a,polypointer b)
+{
+    polypointer p,q;
+    polypointer c,d;
+    p=a->link;q=b->link;
+    int x;
+    c=(polypointer)malloc(sizeof(struct polynode));
+    c->link =NULL;
+    d=c;
+    while((p!=NULL) && (q!=NULL))
+    {
+        switch(compare(p->exp,q->exp))
+        {
+        case'=':
+          x=p->coef+q->coef;
+          if(x!=0)
+           d= Attach(x,p->exp,d);
+             p=p->link;q=q->link;
+            break;
+        case'>':
+            d=Attach(p->coef,p->exp,d);
+            p=p->link;
+            break;
+        case'<':
+            d=Attach(q->coef,q->exp,d);
+            q=q->link;
+            break;
+        }
+    }
+    while(p!=NULL){
+         d=Attach(p->coef,p->exp,d);
+         p=p->link;
+    }
+    while(q!=NULL){
+         d=Attach(q->coef,q->exp,d);
+         q=q->link;
+    }
+    d->link =NULL;
+    //p=c;c=c->link;
+    //free(p);//删除临时用的结点
+    return c;//指向第一个元素的指针
+}
+
+//多项式减法
+polypointer Polysub(polypointer a,polypointer b)
+{
+    polypointer p,q;
+    polypointer c,d;
+    p=a->link;q=b->link;
+    int x;
+    c=(polypointer)malloc(sizeof(struct polynode));
+    c->link =NULL;
+    d=c;
+    while((p!=NULL) && (q!=NULL))
+    {
+        switch(compare(p->exp,q->exp))
+        {
+        case'=':
+          x=p->coef-q->coef;
+          if(x!=0)
+           d= Attach(x,p->exp,d);
+             p=p->link;q=q->link;
+            break;
+        case'>':
+            d=Attach(p->coef,p->exp,d);
+            p=p->link;
+            break;
+        case'<':
+            d=Attach(-q->coef,q->exp,d);
+            q=q->link;
+            break;
+        }
+    }
+    while(p!=NULL){
+         d=Attach(p->coef,p->exp,d);
+         p=p->link;
+    }
+    while(q!=NULL){
+         d=Attach(-q->coef,q->exp,d);
+         q=q->link;
+    }
+    d->link =NULL;
+    //p=c;c=c->link;
+    //free(p);//删除临时用的结点
+    return c;//指向第一个元素的指针
+}
+
+//多项式的乘法
+polypointer Polymul(polypointer a,polypointer b)
+{
+    polypointer p,rear,t1,t2,t;
+    int e,c;
+    if(!a||!b)
+        return NULL;
+    t1=a->link;t2=b->link;
+    p=(polypointer)malloc(sizeof(struct polynode));
+    //p->link=NULL;
+    rear=p;
+    //先计算出一串，这串是有序列的
+    while(t2){
+        rear=Attach(t1->coef*t2->coef,t1->exp+t2->exp,rear);
+        t2=t2->link;
+    }
+    rear->link=NULL;
+    t1=t1->link;
+    while(t1){
+            t2=b->link;rear=p;
+        while(t2){
+            e=t1->exp+t2->exp;//指数相加
+            c=t1->coef*t2->coef;//系数相乘
+            //开始比较系数的大小
+            while(rear->link&&rear->link->exp>e){
+                rear=rear->link;
+            }
+            //下一项的指数跟要插入的相同
+            if(rear->link&&rear->link->exp==e){
+                //指数相加等于0的判断
+                if(rear->link->exp+c==0){
+                    t=rear->link;
+                    rear->link=t->link;
+                    free(t);
+                }else{
+                    rear->link->coef+=c;
+                }
+            }else{
+                t=(polypointer)malloc(sizeof(struct polynode));
+                t->coef=c;t->exp=e;
+                t->link=rear->link;
+                rear->link=t;
+                rear=rear->link;//只能插在新节点t的后面
+            }
+           t2=t2->link;
+        }
+        t1=t1->link;
+    }
+    return p;
+}
+
+//多项式的除法
+polypointer Polydiv(polypointer a,polypointer b)
+{
+    polypointer p,rear,t1,t2,t;
+    float e,c;
+    if(!a||!b)
+        return NULL;
+    t1=a->link;t2=b->link;
+    p=(polypointer)malloc(sizeof(struct polynode));
+    //p->link=NULL;
+    rear=p;
+    //先计算出一串，这串是有序列的
+    while(t2){
+        rear=Attach(t1->coef/t2->coef,t1->exp-t2->exp,rear);
+        t2=t2->link;
+    }
+    rear->link=NULL;
+    t1=t1->link;
+    while(t1){
+            t2=b->link;rear=p;
+        while(t2){
+            e=t1->exp-t2->exp;//指数相减
+            c=t1->coef/t2->coef;//系数相乘
+            //开始比较系数的大小
+            while(rear->link&&rear->link->exp>e){
+                rear=rear->link;
+            }
+            //下一项的指数跟要插入的相同
+            if(rear->link&&rear->link->exp==e){
+                //指数相加等于0的判断
+                if(rear->link->exp+c==0){
+                    t=rear->link;
+                    rear->link=t->link;
+                    free(t);
+                }else{
+                    rear->link->coef+=c;
+                }
+            }else{
+                t=(polypointer)malloc(sizeof(struct polynode));
+                t->coef=c;t->exp=e;
+                t->link=rear->link;
+                rear->link=t;
+                rear=rear->link;//只能插在新节点t的后面
+            }
+           t2=t2->link;
+        }
+        t1=t1->link;
+    }
+    return p;
+}
